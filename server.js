@@ -1,68 +1,65 @@
-// =============================
-//   SANA TAILOR BACKEND SERVER
-// =============================
+// ----------------------
+// SANA TAILOR BACKEND
+// GOOGLE LOGIN + OTP + ORDERS
+// ----------------------
 
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
-const path = require("path");
-require("dotenv").config();
+const session = require("express-session");
+const passport = require("passport");
 
-// Routes
 const userRoutes = require("./routes/userRoutes");
-const adminRoutes = require("./routes/adminRoutes");
 const orderRoutes = require("./routes/orderRoutes");
+const googleAuthRoutes = require("./routes/googleAuth");
+
+require("./config/passport"); // GOOGLE STRATEGY
 
 const app = express();
 
-// -----------------------------
-// Middleware
-// -----------------------------
+// ---------- MIDDLEWARE ----------
+app.use(cors({
+  origin: [
+    "http://localhost:5500",
+    "http://127.0.0.1:5500",
+    "https://sanatai.netlify.app"
+  ],
+  credentials: true
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// CORS (Allow All)
+// ---------- SESSION FOR GOOGLE LOGIN ----------
 app.use(
-  cors({
-    origin: "*",
-    methods: ["GET", "POST", "PATCH", "PUT", "DELETE"],
+  session({
+    secret: "sana_tailor_secret",
+    resave: false,
+    saveUninitialized: false,
   })
 );
 
-// Static folder for uploaded design photos
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use(passport.initialize());
+app.use(passport.session());
 
-// -----------------------------
-// API ROUTES
-// -----------------------------
-app.use("/api/users", userRoutes);
-app.use("/api/admin", adminRoutes);
-app.use("/api/orders", orderRoutes);
-
-// -----------------------------
-// HEALTH CHECK (Required for Render)
-// -----------------------------
-app.get("/api/health", (req, res) => {
-  res.json({
-    status: "OK",
-    message: "Backend running successfully 🎉",
-    time: new Date().toISOString(),
-  });
-});
-
-// -----------------------------
-// DATABASE CONNECTION
-// -----------------------------
+// ---------- DATABASE ----------
 mongoose
   .connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ MongoDB Connected Successfully"))
-  .catch((err) => console.error("❌ MongoDB Error:", err));
+  .then(() => console.log("✅ MongoDB Connected"))
+  .catch((err) => console.log("❌ Mongo Error:", err));
 
-// -----------------------------
-// START SERVER
-// -----------------------------
+// ---------- ROUTES ----------
+app.get("/api/health", (req, res) => {
+  res.json({ status: "OK", message: "Sana Tailor Backend Running" });
+});
+
+app.use("/api/users", userRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/auth", googleAuthRoutes);
+
+// ---------- SERVER ----------
 const PORT = process.env.PORT || 3001;
-
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🚀 Backend Live at PORT ${PORT}`);
 });
