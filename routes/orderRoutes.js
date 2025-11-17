@@ -1,77 +1,73 @@
 const express = require("express");
 const router = express.Router();
-const Order = require("../models/Order");
 const multer = require("multer");
+const Order = require("../models/Order");
 
-// ----------------- MULTER UPLOAD SETTINGS -----------------
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/");
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + "-" + file.originalname);
-  }
-});
+// File Upload
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
-const upload = multer({ storage: storage });
-
-// ----------------- CREATE ORDER -----------------
+/* -----------------------------------------
+   CREATE ORDER  (Step 1)
+----------------------------------------- */
 router.post("/create", upload.single("designPhoto"), async (req, res) => {
   try {
-    const { service, userPhone, userName } = req.body;
+    const { service, userName, userPhone, measurements } = req.body;
 
-    const measurements = JSON.parse(req.body.measurements || "{}");
-    const address = JSON.parse(req.body.address || "{}");
-
-    const fileName = req.file ? req.file.filename : null;
-
-    const order = new Order({
+    const order = await Order.create({
       service,
-      userPhone,
       userName,
-      measurements,
-      address,
-      designPhoto: fileName
+      userPhone,
+      measurements: JSON.parse(measurements),
+      designPhoto: req.file ? req.file.originalname : null
     });
 
-    const savedOrder = await order.save();
-
-    res.json({
+    return res.json({
       success: true,
-      orderId: savedOrder._id,
-      order: savedOrder
+      orderId: order._id
     });
-
   } catch (err) {
-    console.error("ORDER ERROR:", err);
-    res.status(500).json({ success: false, error: err.message });
+    console.log(err);
+    return res.json({ success: false, message: "Order create failed" });
   }
 });
 
-// ----------------- UPDATE ADDRESS -----------------
-router.patch("/:id/address", async (req, res) => {
+/* -----------------------------------------
+   ADD ADDRESS TO ORDER  (Step 2)
+----------------------------------------- */
+router.patch("/:orderId/address", async (req, res) => {
   try {
-    const updated = await Order.findByIdAndUpdate(
-      req.params.id,
-      { address: req.body.address },
+    const { address } = req.body;
+
+    const order = await Order.findByIdAndUpdate(
+      req.params.orderId,
+      { address },
       { new: true }
     );
 
-    res.json({ success: true, order: updated });
+    return res.json({ success: true, order });
   } catch (err) {
-    res.status(500).json({ success: false });
+    console.log(err);
+    return res.json({ success: false, message: "Address update failed" });
   }
 });
 
-// ----------------- GET ALL ORDERS -----------------
+/* -----------------------------------------
+   GET ALL ORDERS (Admin)
+----------------------------------------- */
 router.get("/all", async (req, res) => {
   const orders = await Order.find().sort({ createdAt: -1 });
   res.json(orders);
 });
 
-// ----------------- PDF (placeholder) -----------------
-router.get("/invoice/:id", async (req, res) => {
-  res.send("PDF coming soon");
+/* -----------------------------------------
+   GET USER ORDERS
+----------------------------------------- */
+router.get("/user/:phone", async (req, res) => {
+  const orders = await Order.find({ userPhone: req.params.phone }).sort({
+    createdAt: -1
+  });
+  res.json(orders);
 });
 
 module.exports = router;
