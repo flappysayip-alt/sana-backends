@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const AddressSchema = new mongoose.Schema({
   title: String,
@@ -14,13 +14,16 @@ const AddressSchema = new mongoose.Schema({
 });
 
 const UserSchema = new mongoose.Schema({
-  googleId: { type: String, default: null },
+  googleId: { type: String },   // <-- ADD THIS
   name: String,
-  email: String,
-  phone: { type: String, unique: true, required: false },
-  passwordHash: { type: String, default: null },
+  email: { type: String },
+  phone: { type: String },      // ❗ removed unique & required
+  passwordHash: String,
   addresses: [AddressSchema],
   createdAt: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model("User", UserSchema);
+// Allow NULL phone but avoid duplicate NULL index
+UserSchema.index({ phone: 1 }, { unique: false });
+
+module.exports = mongoose.model('User', UserSchema);
