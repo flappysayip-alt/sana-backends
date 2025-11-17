@@ -14,10 +14,16 @@ const AddressSchema = new mongoose.Schema({
 });
 
 const UserSchema = new mongoose.Schema({
-  name: String,
-  email: String,
-  phone: { type: String, unique: true, required: true },
-  passwordHash: String, // store hashed password
+  name: { type: String, required: true },
+  email: { type: String, required: true },
+
+  // FIX: phone no longer required
+  phone: { type: String, unique: false, default: "" },
+
+  // for Google Auth users
+  googleId: { type: String, default: "" },
+
+  passwordHash: String,
   addresses: [AddressSchema],
   createdAt: { type: Date, default: Date.now }
 });
