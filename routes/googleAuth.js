@@ -1,28 +1,29 @@
 const express = require("express");
 const passport = require("passport");
-const jwt = require("jsonwebtoken");
 const router = express.Router();
 
+// 👉 Start Google Login
 router.get(
   "/google",
   passport.authenticate("google", { scope: ["profile", "email"] })
 );
 
+// 👉 Google Redirect URL
 router.get(
   "/google/callback",
-  passport.authenticate("google", { failureRedirect: "/login-failed" }),
+  passport.authenticate("google", {
+    failureRedirect: process.env.FRONTEND_URL + "/user-login.html",
+  }),
   (req, res) => {
     const user = req.user;
 
-    const token = jwt.sign(
-      { id: user._id, name: user.name, email: user.email },
-      process.env.JWT_SECRET || "tailor123",
-      { expiresIn: "7d" }
-    );
+    const redirectURL =
+      `${process.env.FRONTEND_URL}/google-success.html` +
+      `?name=${encodeURIComponent(user.name)}` +
+      `&email=${encodeURIComponent(user.email || "")}` +
+      `&id=${user._id}`;
 
-    return res.redirect(
-      `${process.env.FRONTEND_URL}/user-dashboard.html?token=${token}&name=${encodeURIComponent(user.name)}`
-    );
+    res.redirect(redirectURL);
   }
 );
 
