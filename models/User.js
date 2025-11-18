@@ -14,16 +14,13 @@ const AddressSchema = new mongoose.Schema({
 });
 
 const UserSchema = new mongoose.Schema({
-  googleId: { type: String },   // <-- ADD THIS
+  googleId: { type: String, unique: true, sparse: true },  // ⭐ added
   name: String,
-  email: { type: String },
-  phone: { type: String },      // ❗ removed unique & required
+  email: { type: String, unique: true, sparse: true },      // ⭐ google email unique
+  phone: { type: String },                                   // ❗ removed unique + required
   passwordHash: String,
   addresses: [AddressSchema],
   createdAt: { type: Date, default: Date.now }
 });
-
-// Allow NULL phone but avoid duplicate NULL index
-UserSchema.index({ phone: 1 }, { unique: false });
 
 module.exports = mongoose.model('User', UserSchema);
