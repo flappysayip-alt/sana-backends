@@ -8,7 +8,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 /* -----------------------------------------
-   CREATE ORDER  (Step 1)
+   CREATE ORDER
 ----------------------------------------- */
 router.post("/create", upload.single("designPhoto"), async (req, res) => {
   try {
@@ -33,7 +33,7 @@ router.post("/create", upload.single("designPhoto"), async (req, res) => {
 });
 
 /* -----------------------------------------
-   ADD ADDRESS TO ORDER  (Step 2)
+   ADD ADDRESS TO ORDER
 ----------------------------------------- */
 router.patch("/:orderId/address", async (req, res) => {
   try {
@@ -49,6 +49,22 @@ router.patch("/:orderId/address", async (req, res) => {
   } catch (err) {
     console.log(err);
     return res.json({ success: false, message: "Address update failed" });
+  }
+});
+
+/* -----------------------------------------
+   GET ORDER BY ID  (REQUIRED FOR WHATSAPP!)
+----------------------------------------- */
+router.get("/:orderId", async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.orderId);
+    if (!order) {
+      return res.json({ success: false, message: "Order not found" });
+    }
+    return res.json({ success: true, order });
+  } catch (err) {
+    console.log(err);
+    return res.json({ success: false, message: "Fetch failed" });
   }
 });
 
