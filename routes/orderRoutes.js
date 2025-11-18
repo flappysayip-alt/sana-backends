@@ -3,12 +3,11 @@ const router = express.Router();
 const multer = require("multer");
 const Order = require("../models/Order");
 
-// File Upload
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 /* -----------------------------------------
-   CREATE ORDER  (STEP 1)
+   CREATE ORDER
 ----------------------------------------- */
 router.post("/create", upload.single("designPhoto"), async (req, res) => {
   try {
@@ -19,15 +18,13 @@ router.post("/create", upload.single("designPhoto"), async (req, res) => {
       userName,
       userPhone,
       measurements: JSON.parse(measurements),
-      designPhoto: req.file ? req.file.originalname : null
+      designPhoto: req.file ? req.file.originalname : null,
+      address: null
     });
 
-    return res.json({
-      success: true,
-      orderId: order._id
-    });
+    return res.json({ success: true, orderId: order._id });
   } catch (err) {
-    console.log(err);
+    console.log("CREATE ERROR:", err);
     return res.json({ success: false, message: "Order create failed" });
   }
 });
@@ -51,9 +48,9 @@ router.get("/user/:phone", async (req, res) => {
 });
 
 /* -----------------------------------------
-   GET ORDER BY ID  (REQUIRED FOR WHATSAPP)
+   GET ORDER BY ID  (THIS WAS FAILING)
 ----------------------------------------- */
-router.get("/:orderId", async (req, res) => {
+router.get("/view/:orderId", async (req, res) => {
   try {
     const order = await Order.findById(req.params.orderId);
     if (!order) {
@@ -61,13 +58,13 @@ router.get("/:orderId", async (req, res) => {
     }
     return res.json({ success: true, order });
   } catch (err) {
-    console.log(err);
+    console.log("FETCH ERROR:", err);
     return res.json({ success: false, message: "Fetch failed" });
   }
 });
 
 /* -----------------------------------------
-   ADD ADDRESS TO ORDER  (STEP 2)
+   ADD ADDRESS TO ORDER
 ----------------------------------------- */
 router.patch("/:orderId/address", async (req, res) => {
   try {
@@ -81,7 +78,7 @@ router.patch("/:orderId/address", async (req, res) => {
 
     return res.json({ success: true, order });
   } catch (err) {
-    console.log(err);
+    console.log("ADDRESS ERROR:", err);
     return res.json({ success: false, message: "Address update failed" });
   }
 });
