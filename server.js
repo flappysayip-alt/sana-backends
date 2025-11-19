@@ -9,6 +9,7 @@ require("dotenv").config();
 const userRoutes = require("./routes/userRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const googleAuthRoutes = require("./routes/googleAuth");
+const pdfRoutes = require("./routes/pdfRoutes"); // ⭐ ADDED
 
 const User = require("./models/User");
 
@@ -76,6 +77,7 @@ passport.deserializeUser(async (id, done) => {
 // ---------------- ROUTES ----------------
 app.use("/api/user", userRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/orders", pdfRoutes);   // ⭐ PDF INVOICE ROUTE ADDED
 app.use("/api/auth", googleAuthRoutes);
 
 // Health Check
