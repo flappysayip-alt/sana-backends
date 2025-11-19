@@ -3,13 +3,13 @@ const router = express.Router();
 const multer = require("multer");
 const Order = require("../models/Order");
 
-// File Upload
+// File upload
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-/* -----------------------------------------
-   CREATE ORDER
------------------------------------------ */
+/* ----------------------------
+   1) CREATE ORDER
+----------------------------- */
 router.post("/create", upload.single("designPhoto"), async (req, res) => {
   try {
     const { service, userName, userPhone, measurements } = req.body;
@@ -22,19 +22,16 @@ router.post("/create", upload.single("designPhoto"), async (req, res) => {
       designPhoto: req.file ? req.file.originalname : null
     });
 
-    return res.json({
-      success: true,
-      orderId: order._id
-    });
+    return res.json({ success: true, orderId: order._id });
   } catch (err) {
     console.log(err);
     return res.json({ success: false, message: "Order create failed" });
   }
 });
 
-/* -----------------------------------------
-   ADD ADDRESS TO ORDER
------------------------------------------ */
+/* ----------------------------
+   2) UPDATE ADDRESS
+----------------------------- */
 router.patch("/:orderId/address", async (req, res) => {
   try {
     const { address } = req.body;
@@ -52,9 +49,27 @@ router.patch("/:orderId/address", async (req, res) => {
   }
 });
 
-/* -----------------------------------------
-   GET ORDER BY ID
------------------------------------------ */
+/* ----------------------------
+   3) GET ALL ORDERS (ADMIN)
+----------------------------- */
+router.get("/all", async (req, res) => {
+  const orders = await Order.find().sort({ createdAt: -1 });
+  res.json(orders);
+});
+
+/* ----------------------------
+   4) GET USER ORDERS
+----------------------------- */
+router.get("/user/:phone", async (req, res) => {
+  const orders = await Order.find({ userPhone: req.params.phone }).sort({
+    createdAt: -1,
+  });
+  res.json(orders);
+});
+
+/* ----------------------------
+   5) GET ORDER BY ID (KEEP LAST!)
+----------------------------- */
 router.get("/:orderId", async (req, res) => {
   try {
     const order = await Order.findById(req.params.orderId);
@@ -68,24 +83,6 @@ router.get("/:orderId", async (req, res) => {
     console.log(err);
     return res.json({ success: false, message: "Fetch failed" });
   }
-});
-
-/* -----------------------------------------
-   GET ALL ORDERS (ADMIN)
------------------------------------------ */
-router.get("/all", async (req, res) => {
-  const orders = await Order.find().sort({ createdAt: -1 });
-  res.json(orders);
-});
-
-/* -----------------------------------------
-   GET USER ORDERS
------------------------------------------ */
-router.get("/user/:phone", async (req, res) => {
-  const orders = await Order.find({ userPhone: req.params.phone }).sort({
-    createdAt: -1
-  });
-  res.json(orders);
 });
 
 module.exports = router;
