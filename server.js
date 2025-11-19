@@ -8,8 +8,9 @@ require("dotenv").config();
 
 const userRoutes = require("./routes/userRoutes");
 const orderRoutes = require("./routes/orderRoutes");
+const adminRoutes = require("./routes/adminRoutes");   // ⭐ ADDED
 const googleAuthRoutes = require("./routes/googleAuth");
-const pdfRoutes = require("./routes/pdfRoutes"); // ⭐ ADDED
+const pdfRoutes = require("./routes/pdfRoutes");       // ⭐ ADDED
 
 const User = require("./models/User");
 
@@ -17,13 +18,18 @@ const app = express();
 
 // ---------------- CORS ----------------
 app.use(express.json());
+
 app.use(cors({
   origin: [
+    "null",
+    "*",
     process.env.FRONTEND_URL,
     "http://localhost:3000",
     "http://localhost:5500",
     "https://sanatai.netlify.app"
   ],
+  methods: ["GET","POST","PATCH","PUT","DELETE","OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
 }));
 
@@ -77,7 +83,8 @@ passport.deserializeUser(async (id, done) => {
 // ---------------- ROUTES ----------------
 app.use("/api/user", userRoutes);
 app.use("/api/orders", orderRoutes);
-app.use("/api/orders", pdfRoutes);   // ⭐ PDF INVOICE ROUTE ADDED
+app.use("/api/orders", pdfRoutes);      // PDF INVOICE ROUTE
+app.use("/api/admin", adminRoutes);     // ⭐ ADMIN LOGIN ROUTE ADDED
 app.use("/api/auth", googleAuthRoutes);
 
 // Health Check
