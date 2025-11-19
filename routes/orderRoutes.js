@@ -8,7 +8,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 /* -----------------------------------------
-   CREATE ORDER
+   CREATE ORDER  (STEP 1)
 ----------------------------------------- */
 router.post("/create", upload.single("designPhoto"), async (req, res) => {
   try {
@@ -22,18 +22,18 @@ router.post("/create", upload.single("designPhoto"), async (req, res) => {
       designPhoto: req.file ? req.file.originalname : null
     });
 
-    return res.json({
+    res.json({
       success: true,
       orderId: order._id
     });
   } catch (err) {
     console.log(err);
-    return res.json({ success: false, message: "Order create failed" });
+    res.json({ success: false, message: "Order create failed" });
   }
 });
 
 /* -----------------------------------------
-   ADD ADDRESS TO ORDER
+   UPDATE ADDRESS  (STEP 2)
 ----------------------------------------- */
 router.patch("/:orderId/address", async (req, res) => {
   try {
@@ -45,15 +45,31 @@ router.patch("/:orderId/address", async (req, res) => {
       { new: true }
     );
 
-    return res.json({ success: true, order });
+    res.json({ success: true, order });
   } catch (err) {
     console.log(err);
-    return res.json({ success: false, message: "Address update failed" });
+    res.json({ success: false, message: "Address update failed" });
   }
 });
 
 /* -----------------------------------------
-   GET ALL ORDERS (Admin)
+   FIXED: GET ORDER BY ID  (/view/:id)
+----------------------------------------- */
+router.get("/view/:orderId", async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.orderId);
+    if (!order) {
+      return res.json({ success: false, message: "Order not found" });
+    }
+    res.json({ success: true, order });
+  } catch (err) {
+    console.log(err);
+    res.json({ success: false, message: "Fetch failed" });
+  }
+});
+
+/* -----------------------------------------
+   ADMIN – ALL ORDERS
 ----------------------------------------- */
 router.get("/all", async (req, res) => {
   const orders = await Order.find().sort({ createdAt: -1 });
@@ -61,29 +77,13 @@ router.get("/all", async (req, res) => {
 });
 
 /* -----------------------------------------
-   GET USER ORDERS
+   USER ORDERS
 ----------------------------------------- */
 router.get("/user/:phone", async (req, res) => {
   const orders = await Order.find({ userPhone: req.params.phone }).sort({
     createdAt: -1
   });
   res.json(orders);
-});
-
-/* -----------------------------------------
-   GET ORDER BY ID  ⭐ MUST BE LAST ⭐
------------------------------------------ */
-router.get("/:orderId", async (req, res) => {
-  try {
-    const order = await Order.findById(req.params.orderId);
-    if (!order) {
-      return res.json({ success: false, message: "Order not found" });
-    }
-    return res.json({ success: true, order });
-  } catch (err) {
-    console.log(err);
-    return res.json({ success: false, message: "Fetch failed" });
-  }
 });
 
 module.exports = router;
