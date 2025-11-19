@@ -7,9 +7,9 @@ const Order = require("../models/Order");
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-/* ----------------------------
-   1) CREATE ORDER
------------------------------ */
+/* -----------------------------------------
+   CREATE ORDER
+----------------------------------------- */
 router.post("/create", upload.single("designPhoto"), async (req, res) => {
   try {
     const { service, userName, userPhone, measurements } = req.body;
@@ -23,15 +23,16 @@ router.post("/create", upload.single("designPhoto"), async (req, res) => {
     });
 
     return res.json({ success: true, orderId: order._id });
+
   } catch (err) {
     console.log(err);
     return res.json({ success: false, message: "Order create failed" });
   }
 });
 
-/* ----------------------------
-   2) UPDATE ADDRESS
------------------------------ */
+/* -----------------------------------------
+   ADD ADDRESS TO ORDER
+----------------------------------------- */
 router.patch("/:orderId/address", async (req, res) => {
   try {
     const { address } = req.body;
@@ -43,23 +44,24 @@ router.patch("/:orderId/address", async (req, res) => {
     );
 
     return res.json({ success: true, order });
+
   } catch (err) {
     console.log(err);
     return res.json({ success: false, message: "Address update failed" });
   }
 });
 
-/* ----------------------------
-   3) GET ALL ORDERS (ADMIN)
------------------------------ */
+/* -----------------------------------------
+   GET ALL ORDERS
+----------------------------------------- */
 router.get("/all", async (req, res) => {
   const orders = await Order.find().sort({ createdAt: -1 });
   res.json(orders);
 });
 
-/* ----------------------------
-   4) GET USER ORDERS
------------------------------ */
+/* -----------------------------------------
+   GET USER ORDERS
+----------------------------------------- */
 router.get("/user/:phone", async (req, res) => {
   const orders = await Order.find({ userPhone: req.params.phone }).sort({
     createdAt: -1,
@@ -67,9 +69,28 @@ router.get("/user/:phone", async (req, res) => {
   res.json(orders);
 });
 
-/* ----------------------------
-   5) GET ORDER BY ID (KEEP LAST!)
------------------------------ */
+/* -----------------------------------------
+   FIXED: GET ORDER FOR FRONTEND (MANDATORY)
+----------------------------------------- */
+router.get("/view/:orderId", async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.orderId);
+
+    if (!order) {
+      return res.json({ success: false, message: "Order not found" });
+    }
+
+    return res.json({ success: true, order });
+
+  } catch (err) {
+    console.log(err);
+    return res.json({ success: false, message: "Fetch failed" });
+  }
+});
+
+/* -----------------------------------------
+   MUST BE LAST: GET ORDER BY ID
+----------------------------------------- */
 router.get("/:orderId", async (req, res) => {
   try {
     const order = await Order.findById(req.params.orderId);
@@ -79,6 +100,7 @@ router.get("/:orderId", async (req, res) => {
     }
 
     return res.json({ success: true, order });
+
   } catch (err) {
     console.log(err);
     return res.json({ success: false, message: "Fetch failed" });
