@@ -8,7 +8,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 /* -----------------------------------------
-   CREATE ORDER  (STEP 1)
+   CREATE ORDER
 ----------------------------------------- */
 router.post("/create", upload.single("designPhoto"), async (req, res) => {
   try {
@@ -22,18 +22,18 @@ router.post("/create", upload.single("designPhoto"), async (req, res) => {
       designPhoto: req.file ? req.file.originalname : null
     });
 
-    res.json({
+    return res.json({
       success: true,
       orderId: order._id
     });
   } catch (err) {
     console.log(err);
-    res.json({ success: false, message: "Order create failed" });
+    return res.json({ success: false, message: "Order create failed" });
   }
 });
 
 /* -----------------------------------------
-   UPDATE ADDRESS  (STEP 2)
+   ADD ADDRESS TO ORDER
 ----------------------------------------- */
 router.patch("/:orderId/address", async (req, res) => {
   try {
@@ -45,31 +45,33 @@ router.patch("/:orderId/address", async (req, res) => {
       { new: true }
     );
 
-    res.json({ success: true, order });
+    return res.json({ success: true, order });
   } catch (err) {
     console.log(err);
-    res.json({ success: false, message: "Address update failed" });
+    return res.json({ success: false, message: "Address update failed" });
   }
 });
 
 /* -----------------------------------------
-   FIXED: GET ORDER BY ID  (/view/:id)
+   GET ORDER BY ID
 ----------------------------------------- */
-router.get("/view/:orderId", async (req, res) => {
+router.get("/:orderId", async (req, res) => {
   try {
     const order = await Order.findById(req.params.orderId);
+
     if (!order) {
       return res.json({ success: false, message: "Order not found" });
     }
-    res.json({ success: true, order });
+
+    return res.json({ success: true, order });
   } catch (err) {
     console.log(err);
-    res.json({ success: false, message: "Fetch failed" });
+    return res.json({ success: false, message: "Fetch failed" });
   }
 });
 
 /* -----------------------------------------
-   ADMIN – ALL ORDERS
+   GET ALL ORDERS (ADMIN)
 ----------------------------------------- */
 router.get("/all", async (req, res) => {
   const orders = await Order.find().sort({ createdAt: -1 });
@@ -77,7 +79,7 @@ router.get("/all", async (req, res) => {
 });
 
 /* -----------------------------------------
-   USER ORDERS
+   GET USER ORDERS
 ----------------------------------------- */
 router.get("/user/:phone", async (req, res) => {
   const orders = await Order.find({ userPhone: req.params.phone }).sort({
