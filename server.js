@@ -12,6 +12,9 @@ const adminRoutes = require("./routes/adminRoutes");   // ⭐ ADDED
 const googleAuthRoutes = require("./routes/googleAuth");
 const pdfRoutes = require("./routes/pdfRoutes");       // ⭐ ADDED
 
+// ⭐⭐⭐ REVIEW ROUTE ADDED (NEW)
+const reviewRoutes = require("./routes/reviewRoutes");
+
 const User = require("./models/User");
 
 const app = express();
@@ -26,7 +29,7 @@ app.use(cors({
     process.env.FRONTEND_URL,
     "http://localhost:3000",
     "http://localhost:5500",
-    "https://sanatai.netlify.app"
+    "https://sanafashion.netlify.app"
   ],
   methods: ["GET","POST","PATCH","PUT","DELETE","OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
@@ -86,6 +89,9 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/orders", pdfRoutes);      // PDF INVOICE ROUTE
 app.use("/api/admin", adminRoutes);     // ⭐ ADMIN LOGIN ROUTE ADDED
 app.use("/api/auth", googleAuthRoutes);
+
+// ⭐⭐⭐ REVIEW API (PUBLIC)
+app.use("/api/reviews", reviewRoutes);
 
 // Health Check
 app.get("/api/health", (req, res) => {
