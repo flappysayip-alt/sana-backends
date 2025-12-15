@@ -4,15 +4,15 @@ const mongoose = require("mongoose");
 const session = require("express-session");
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const multer = require("multer");               // ✅ ADDED
+const path = require("path");                   // ✅ ADDED
 require("dotenv").config();
 
 const userRoutes = require("./routes/userRoutes");
 const orderRoutes = require("./routes/orderRoutes");
-const adminRoutes = require("./routes/adminRoutes");   // ⭐ ADDED
+const adminRoutes = require("./routes/adminRoutes");
 const googleAuthRoutes = require("./routes/googleAuth");
-const pdfRoutes = require("./routes/pdfRoutes");       // ⭐ ADDED
-
-// ⭐⭐⭐ REVIEW ROUTE ADDED (NEW)
+const pdfRoutes = require("./routes/pdfRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
 
 const User = require("./models/User");
@@ -83,14 +83,48 @@ passport.deserializeUser(async (id, done) => {
   done(null, user);
 });
 
+// ---------------- FILE UPLOAD (NEW) ----------------
+
+// Serve uploaded images publicly
+app.use("/uploads", express.static("uploads"));
+
+// Multer config
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+  filename: (req, file, cb) => {
+    const uniqueName =
+      Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueName + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB
+});
+
+// Upload API
+app.post("/api/upload", upload.single("file"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: "No file uploaded" });
+  }
+
+  const fileUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
+
+  res.json({
+    success: true,
+    url: fileUrl
+  });
+});
+
 // ---------------- ROUTES ----------------
 app.use("/api/user", userRoutes);
 app.use("/api/orders", orderRoutes);
-app.use("/api/orders", pdfRoutes);      // PDF INVOICE ROUTE
-app.use("/api/admin", adminRoutes);     // ⭐ ADMIN LOGIN ROUTE ADDED
+app.use("/api/orders", pdfRoutes);
+app.use("/api/admin", adminRoutes);
 app.use("/api/auth", googleAuthRoutes);
-
-// ⭐⭐⭐ REVIEW API (PUBLIC)
 app.use("/api/reviews", reviewRoutes);
 
 // Health Check
