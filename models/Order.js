@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 
+/* Address sub-schema */
 const AddressSchema = new mongoose.Schema({
   name: String,
   house: String,
@@ -8,20 +9,71 @@ const AddressSchema = new mongoose.Schema({
   pin: String
 });
 
-const OrderSchema = new mongoose.Schema({
-  service: String,
-  userName: String,
-  userPhone: String,
+/* Order schema */
+const OrderSchema = new mongoose.Schema(
+  {
+    // 👤 User identity (VERY IMPORTANT)
+    userName: {
+      type: String,
+      required: true
+    },
 
-  measurements: { type: Object, default: {} },
+    userEmail: {
+      type: String,
+      required: true,
+      index: true
+    },
 
-  address: { type: AddressSchema, default: {} },
+    userPhone: {
+      type: String,
+      required: true
+    },
 
-  designPhoto: String,
+    // ✂️ Service
+    service: {
+      type: String,
+      required: true
+    },
 
-  status: { type: String, default: "pending" },
+    // 📏 Measurements
+    measurements: {
+      type: Object,
+      default: {}
+    },
 
-  createdAt: { type: Date, default: Date.now }
-});
+    // 🏠 Address
+    address: {
+      type: AddressSchema,
+      default: {}
+    },
+
+    // 🖼️ Uploaded photos
+    designURL: {
+      type: String,
+      default: ""
+    },
+
+    measureURL: {
+      type: String,
+      default: ""
+    },
+
+    // ⭐ Review tracking
+    hasReview: {
+      type: Boolean,
+      default: false
+    },
+
+    // 📦 Order status
+    status: {
+      type: String,
+      default: "pending"
+    }
+  },
+  {
+    timestamps: true, // createdAt + updatedAt
+    collection: "orders"
+  }
+);
 
 module.exports = mongoose.model("Order", OrderSchema);
