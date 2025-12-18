@@ -97,5 +97,22 @@ router.get('/address/:phone/:addressId', async (req,res)=>{
   res.json({ success:true, address: a });
 });
 
+// ===============================
+// GET CURRENT LOGGED-IN USER
+// ===============================
+router.get("/me", (req, res) => {
+  if (!req.user) {
+    return res.json({ loggedIn: false });
+  }
+
+  res.json({
+    loggedIn: true,
+    name: req.user.name,
+    email: req.user.email,
+    phone: req.user.phone,
+    photo: req.user.photo || ""
+  });
+});
+
 module.exports = router;
 
