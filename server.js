@@ -23,26 +23,26 @@ const app = express();
 app.use(express.json());
 
 app.use(cors({
-  origin: [
-    "null",
-    "*",
-    process.env.FRONTEND_URL,
-    "http://localhost:3000",
-    "http://localhost:5500",
-    "https://sanafashion.netlify.app"
-  ],
+  origin: "https://sanafashion.netlify.app",
+  credentials: true,
   methods: ["GET","POST","PATCH","PUT","DELETE","OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
 // ---------------- SESSION ----------------
+app.set("trust proxy", 1); // ⭐ VERY IMPORTANT FOR Render/HTTPS
+
 app.use(session({
   secret: process.env.JWT_SECRET || "tailor123",
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false }
+  cookie: {
+    secure: true,        // 🔥 HTTPS ONLY
+    httpOnly: true,
+    sameSite: "none"     // 🔥 allow cross-site cookie (Netlify → Render)
+  }
 }));
+
 
 // ---------------- PASSPORT ----------------
 app.use(passport.initialize());
